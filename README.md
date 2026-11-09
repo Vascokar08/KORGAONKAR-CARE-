@@ -1,5 +1,7 @@
 # Korgaonkar Care AI
 
+For the Netlify + Supabase deployment target, see [NETLIFY.md](NETLIFY.md). This target uses a separate Postgres database and verified-email patient accounts.
+
 The advanced upgrade is documented in [UPGRADE.md](UPGRADE.md), including completed/pending features, operations APIs, roles, architecture and demo instructions. The earlier HealthSathi implementation notes below describe the preserved foundation; the upgrade status takes precedence.
 
 # HealthSathi Goa — educational hospital service assistant

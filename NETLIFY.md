@@ -1,0 +1,20 @@
+# Netlify deployment
+
+The Netlify target uses React + Vite, Node serverless functions, and Supabase Postgres and verified-email authentication. The original Sites/Cloudflare target remains available with `npm run build`.
+
+1. Create a Supabase **Free** project. Disable automatic table exposure and enable automatic row-level security.
+2. Run `netlify/migrations/001_initial.sql` once using the project's SQL editor. It creates a private `care` schema, foreign keys, unique booking/queue constraints and fictional fixtures. No patient data is migrated from the separate Sites deployment.
+3. Set these Netlify environment variables, never commit their values:
+   - `DATABASE_URL`: Supabase transaction-pooler connection URL with the database password, using TLS (`sslmode=require`). Server function runtime only.
+   - `SUPABASE_URL`: project API URL.
+   - `SUPABASE_ANON_KEY`: public publishable/anon API key. This is intentionally sent to the client; never use a service-role key here.
+   - `ADMIN_EMAIL`: verified email of the demo administrator.
+4. Import the GitHub repository in Netlify. Build: `npm run build:netlify`; publish: `netlify-dist`; Node 22. `netlify.toml` configures functions and SPA routing.
+5. Set the Supabase Auth Site URL and allowed redirect URL to the deployed Netlify HTTPS origin. Email verification must remain enabled. Register and confirm the administrator account using the exact `ADMIN_EMAIL`.
+6. Verify `/api/health`, the doctor directory, sign-in, booking conflict protection and staff restrictions.
+
+Public visitors can explore the chatbot and doctor directory. Saved records require a Supabase-verified account. Incoming Sites identity headers are ignored on Netlify. All SQL uses bound parameters, and batch writes use database transactions. The private schema is inaccessible through the browser Data API.
+
+Free plans have quotas; Supabase free projects can pause when inactive. This is an educational demonstration, not a clinical system. Use fictional records. Existing Sites sign-ins and records are separate; the Netlify earlier-requests list is empty. No paid AI API is needed.
+
+Local verification: `node scripts/prepare-postgres.mjs`, `node scripts/test-netlify.mjs`, `npm run build:netlify`. The test database is an isolated in-memory Postgres engine; no production data is used.
