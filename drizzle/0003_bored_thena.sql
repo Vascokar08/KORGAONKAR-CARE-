@@ -1,0 +1,1 @@
+ALTER TABLE `usage_totals` ADD `measured_count` integer DEFAULT 0 NOT NULL;

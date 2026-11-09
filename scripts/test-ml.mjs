@@ -1,0 +1,30 @@
+import fs from 'node:fs';
+import ts from 'typescript';
+import assert from 'node:assert/strict';
+const compile=p=>ts.transpileModule(fs.readFileSync(p,'utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText;
+const url=s=>'data:text/javascript;base64,'+Buffer.from(s).toString('base64');
+const mlUrl=url(compile('app/ml.ts'));
+const {model,evaluateModel}=await import(mlUrl);
+const {respond}=await import(url(compile('app/chat.ts').replaceAll("'./ml'",JSON.stringify(mlUrl))));
+const evaluation=evaluateModel();
+console.log(`Held-out top-1 matches: ${evaluation.correct}/${evaluation.total}; correct and accepted: ${evaluation.acceptedCorrect}/${evaluation.total}`);
+for(const row of evaluation.results)if(row.intent!==row.prediction.intent)console.log('Mismatch:',row.text,'=>',row.prediction.intent);
+assert.ok(evaluation.correct/evaluation.total>=.8,'Held-out intent matching below 80%');
+assert.equal(model.predict('quantum galaxies spaghetti xyzzy').accepted,false);
+assert.equal(model.predict('').accepted,false);
+assert.equal(respond('chest pain').source,'Emergency scope boundary');
+assert.equal(respond('what dose should I take').source,'Medical scope boundary');
+assert.equal(respond('diagnose my symptoms').source,'Medical scope boundary');
+assert.notEqual(respond('Diagnostics').source,'Medical scope boundary');
+assert.equal(respond('delete my appointment').context.intent,'cancellation');
+const first=respond('Cardiology');
+const followup=respond('book it',first.context);
+assert.equal(followup.context.department,'Cardiology');
+assert.equal(followup.context.intent,'booking');
+assert.match(followup.text,/Cardiology/);
+assert.equal(respond('quantum galaxies spaghetti xyzzy').source,'Clarification needed');
+assert.equal(respond('what are visiting hours').context.intent,'hours');
+assert.ok(model.predict('book an appointment',.9).accepted===false||model.predict('book an appointment',.9).score>=.9);
+console.log('ML, context, safety-boundary and out-of-domain checks passed.');
+
+

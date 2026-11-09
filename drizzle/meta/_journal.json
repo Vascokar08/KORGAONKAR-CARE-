@@ -1,0 +1,41 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1794143986476,
+      "tag": "0000_quiet_loki",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1794151977746,
+      "tag": "0001_loud_weapon_omega",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1794162438091,
+      "tag": "0002_cool_gressill",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1794162574888,
+      "tag": "0003_bored_thena",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1794163894472,
+      "tag": "0004_vengeful_wild_child",
+      "breakpoints": true
+    }
+  ]
+}
