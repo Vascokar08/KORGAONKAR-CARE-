@@ -1,3 +1,3 @@
-import PortalSelection from './portal-selection';
-export default function Home(){return <PortalSelection/>}
+import Dashboard from './dashboard';
+export default function Home(){return <Dashboard/>}
 
