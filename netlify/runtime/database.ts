@@ -1,4 +1,5 @@
 import pg from 'pg';
+import {supabaseCA} from './supabase-ca';
 pg.types.setTypeParser(20, Number);
 pg.types.setTypeParser(1700, Number);
 
@@ -48,7 +49,10 @@ let database:Database|undefined;
 export function getDatabase(){
  if(database)return database;
  if(!process.env.DATABASE_URL)throw new Error('DATABASE_URL is not configured');
- const pool=new pg.Pool({connectionString:process.env.DATABASE_URL,password:process.env.PGPASSWORD,max:2,idleTimeoutMillis:10000,connectionTimeoutMillis:10000});
+ const connectionURL=new URL(process.env.DATABASE_URL);
+ // pg URL SSL parameters override the explicit SSL object. Supply verified TLS here instead.
+ for(const key of ['sslmode','sslrootcert','sslcert','sslkey','uselibpqcompat'])connectionURL.searchParams.delete(key);
+ const pool=new pg.Pool({connectionString:connectionURL.toString(),password:process.env.PGPASSWORD,ssl:{ca:supabaseCA,rejectUnauthorized:true},max:2,idleTimeoutMillis:10000,connectionTimeoutMillis:10000});
  database=new Database(pool,async fn=>{const c=await pool.connect();try{await c.query('BEGIN');const r=await fn(c);await c.query('COMMIT');return r}catch(e){await c.query('ROLLBACK');throw e}finally{c.release()}});
  return database;
 }
