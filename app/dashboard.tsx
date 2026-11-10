@@ -1,6 +1,6 @@
 'use client';
 import {useEffect,useRef,useState} from 'react';
-import {HeartPulse,MessageSquare,CalendarDays,Stethoscope,MapPin,ArrowUpRight,ArrowUp,Plus,ShieldCheck,Clock,FlaskConical,RotateCcw,Menu,Mic,Volume2,Settings,Star,BookOpen} from 'lucide-react';
+import {HeartPulse,MessageSquare,CalendarDays,Stethoscope,MapPin,ArrowUpRight,ArrowUp,Plus,ShieldCheck,Clock,RotateCcw,Menu,Mic,Volume2,Settings,Star,BookOpen} from 'lucide-react';
 import {respond,type ChatContext} from './chat';
 import {normalizeQuery,retrieve,documents,type Document} from './knowledge';
 import {days,recommendDoctors,type Catalogue,type Doctor,type Slot,type Booking} from './hospital-data';
@@ -20,7 +20,7 @@ const empty:Catalogue={hospitals:[],doctors:[],schedules:[],departments:[],holid
 const greeting='Hello! Welcome to Korgaonkar Care AI. I can help you find a doctor, explore OPD schedules, request a demo appointment, or locate official healthcare services. How can I help?';
 const homeAction:Action={label:'🏠 Home',kind:'nav',value:'__home__'};
 const feedbackAction:Action={label:'Give feedback',kind:'nav',value:'Feedback'};
-const navItems=[{name:'Care assistant',icon:MessageSquare},{name:'Doctors & OPD',icon:Stethoscope},{name:'My appointments',icon:CalendarDays},{name:'OPD queue',icon:Clock},{name:'Hospital resources',icon:HeartPulse},{name:'Doctor workspace',icon:Stethoscope},{name:'Hospital locator',icon:MapPin},{name:'Services & information',icon:BookOpen},{name:'Reports & terms',icon:BookOpen},{name:'Care reminders',icon:Clock},{name:'Staff support',icon:MessageSquare},{name:'Facilities & navigation',icon:MapPin},{name:'Feedback',icon:Star},{name:'AI / ML lab',icon:FlaskConical},{name:'Korgaonkar Insights',icon:Settings}];
+const navItems=[{name:'Care assistant',icon:MessageSquare},{name:'Doctors & OPD',icon:Stethoscope},{name:'My appointments',icon:CalendarDays},{name:'OPD queue',icon:Clock},{name:'Hospital resources',icon:HeartPulse},{name:'Doctor workspace',icon:Stethoscope},{name:'Hospital locator',icon:MapPin},{name:'Services & information',icon:BookOpen},{name:'Reports & terms',icon:BookOpen},{name:'Care reminders',icon:Clock},{name:'Staff support',icon:MessageSquare},{name:'Facilities & navigation',icon:MapPin},{name:'Feedback',icon:Star},{name:'Korgaonkar Insights',icon:Settings}];
 export default function Dashboard(){
  const [tab,setTab]=useState('Care assistant'),[menu,setMenu]=useState(false),[input,setInput]=useState(''),[messages,setMessages]=useState<Message[]>([{role:'assistant',text:greeting}]),[catalogue,setCatalogue]=useState<Catalogue>(empty),[error,setError]=useState(''),[loading,setLoading]=useState(true),[thinking,setThinking]=useState(false),[query,setQuery]=useState(''),[notice,setNotice]=useState(''),[booking,setBooking]=useState<{doctor?:Doctor;slot?:Slot;existing?:Booking}|null>(null),[large,setLarge]=useState(false),[contrast,setContrast]=useState(false),[consent,setConsent]=useState(false),[language,setLanguage]=useState('en-IN'),[voice,setVoice]=useState(false),[voiceConsent,setVoiceConsent]=useState(false),[voiceMessage,setVoiceMessage]=useState('');
  const started=useRef(0);const end=useRef<HTMLDivElement>(null),context=useRef<ChatContext>({}),flow=useRef<{department?:string;hospital?:string;doctor?:Doctor;slots:Slot[]}>({slots:[]}),recognizer=useRef<SpeechEngine|null>(null);
