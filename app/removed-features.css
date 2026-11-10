@@ -2,5 +2,6 @@
 .quick-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
 .quick-grid .quick-card:nth-child(3){display:none!important}
 .suggestions{display:none!important}
+.appointment-actions{white-space:nowrap}.appointment-actions button{margin-right:6px;padding:7px 10px;border-radius:6px;border:1px solid #bfd7d6;color:#167b70;font-size:11px}.appointment-actions button:first-child{background:#167b70;color:#fff}.appointment-actions span{color:#87978f;font-size:11px}
 @media(max-width:760px){.quick-grid{grid-template-columns:1fr!important}}
 

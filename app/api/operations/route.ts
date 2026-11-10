@@ -39,6 +39,17 @@ export async function POST(req:Request){
   const b=z.object({id:z.string().regex(/^[a-z0-9-]{1,60}$/),name:z.string().trim().min(2).max(80),kind:z.enum(['bed','service']),capacity:z.number().int().min(0).max(1000),available:z.number().int().min(0),status:z.enum(['Available','Limited','Unavailable'])}).refine(b=>b.available<=b.capacity).parse(body);
   await db.batch([db.prepare('INSERT INTO hospital_resources(id,name,kind,capacity,available,status,updated_at) VALUES(?,?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET name=excluded.name,kind=excluded.kind,capacity=excluded.capacity,available=excluded.available,status=excluded.status,updated_at=excluded.updated_at').bind(b.id,b.name,b.kind,b.capacity,b.available,b.status,now),audit('resource',b.id)]);return json({ok:true});
  }
+ if(body.action==='appointment'){
+  if(!staff(role))return json({error:'Staff access required'},403);
+  const b=z.object({id:z.string().min(1).max(100),decision:z.enum(['accept','decline'])}).parse(body);
+  const appointment=await db.prepare('SELECT b.id,b.status,d.id doctor_id FROM bookings b JOIN appointment_slots s ON s.id=b.slot_id JOIN doctors d ON d.id=s.doctor_id WHERE b.id=?').bind(b.id).first<{id:string;status:string;doctor_id:string}>();
+  if(!appointment)return json({error:'Appointment not found'},404);
+  if(!allowed(role,doctorId,appointment.doctor_id))return json({error:'Not authorized for this doctor appointment'},403);
+  const status=b.decision==='accept'?'confirmed':'declined';
+  const result=await db.batch([db.prepare("UPDATE bookings SET status=? WHERE id=? AND status='awaiting_hospital_confirmation'").bind(status,b.id),audit('appointment-'+b.decision,b.id)]);
+  if(!result[0].meta.changes)return json({error:'This appointment was already processed. Refresh the staff workspace.'},409);
+  return json({ok:true,status});
+ }
  const b=z.object({doctorId:z.string().min(1).max(100),action:z.enum(['walkin','checkin','next','complete','skip','recall','presence']),id:z.string().max(100).optional(),bookingId:z.string().max(100).optional(),available:z.boolean().optional()}).parse(body);
  if(!await db.prepare('SELECT id FROM doctors WHERE id=? AND active=1').bind(b.doctorId).first())return json({error:'Doctor unavailable'},404);
  if(b.action!=='checkin'&&!allowed(role,doctorId,b.doctorId))return json({error:'Not authorized for this doctor queue'},403);
@@ -55,3 +66,4 @@ export async function POST(req:Request){
  const result=await db.batch([statement,audit(b.action+'-attempt',b.id||b.doctorId)]);if(!result[0].meta.changes)return json({error:'Queue changed, is paused, or action is unavailable. Refresh and retry.'},409);return json({ok:true});
  }catch(e){if(e instanceof z.ZodError||e instanceof SyntaxError)return json({error:'Invalid operation input'},400);if(String(e).includes('UNIQUE'))return json({error:'Token already exists or another consultation is active. Refresh the queue.'},409);return json({error:'Operation could not be saved. Please retry.'},503)}
 }
+
