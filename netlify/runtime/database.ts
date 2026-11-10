@@ -10,6 +10,9 @@ export function postgresSQL(source: string) {
     '(EXTRACT(EPOCH FROM (completed_at::timestamptz-called_at::timestamptz))/60)');
   const table = sql.match(/^INSERT INTO (usage_totals|department_usage)/i)?.[1];
   if (table) sql = sql.replace(/SET (.*)$/i, (_, tail) => 'SET ' + tail.replace(/=(count|duration_total|fallback_count|measured_count)\+/g, `=${table}.$1+`));
+  // Pooler connections can change between transactions: never depend on session search_path.
+  const tables='appointments|bookings|departments|doctors|feedback|holidays|hospitals|doctor_schedules|appointment_slots|usage_totals|department_usage|facility_directory|followup_reminders|staff_requests|doctor_presence|hospital_resources|operations_audit|queue_tokens|staff_roles';
+  sql=sql.replace(new RegExp(`\\b(FROM|JOIN|INTO|UPDATE)\\s+(${tables})\\b`,'gi'),'$1 care.$2');
   let n=0;
   return sql.replace(/'(?:''|[^'])*'|"(?:""|[^"])*"|`([^`]+)`|\?|\bend\b/g, (token, identifier) => {
     if (token === '?') return `$${++n}`;
@@ -45,7 +48,7 @@ let database:Database|undefined;
 export function getDatabase(){
  if(database)return database;
  if(!process.env.DATABASE_URL)throw new Error('DATABASE_URL is not configured');
- const pool=new pg.Pool({connectionString:process.env.DATABASE_URL,max:2,idleTimeoutMillis:10000,connectionTimeoutMillis:10000,options:'-c search_path=care,public'});
+ const pool=new pg.Pool({connectionString:process.env.DATABASE_URL,password:process.env.PGPASSWORD,max:2,idleTimeoutMillis:10000,connectionTimeoutMillis:10000});
  database=new Database(pool,async fn=>{const c=await pool.connect();try{await c.query('BEGIN');const r=await fn(c);await c.query('COMMIT');return r}catch(e){await c.query('ROLLBACK');throw e}finally{c.release()}});
  return database;
 }

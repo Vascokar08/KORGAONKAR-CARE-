@@ -1,5 +1,6 @@
 import {createClient} from '@supabase/supabase-js';
 import {requestContext} from './context';
+import {getDatabase} from './database';
 import * as hospital from '../../app/api/hospital/route';
 import * as support from '../../app/api/support/route';
 import * as operations from '../../app/api/operations/route';
@@ -8,7 +9,10 @@ export default async function handler(request:Request){
  const path=new URL(request.url).pathname;
  const url=process.env.SUPABASE_URL,key=process.env.SUPABASE_ANON_KEY;
  if(path==='/api/config')return url&&key?json({url,key}):json({error:'Patient sign-in is awaiting deployment configuration.'},503);
- if(path==='/api/health')return json({service:'Korgaonkar Care AI',configured:!!(url&&key&&process.env.DATABASE_URL)});
+ if(path==='/api/health'){
+  try{await getDatabase().prepare('SELECT id FROM hospitals LIMIT 1').first();return json({service:'Korgaonkar Care AI',configured:!!(url&&key),databaseConnected:true})}
+  catch{return json({service:'Korgaonkar Care AI',databaseConnected:false},503)}
+ }
  if(!url||!key||!process.env.DATABASE_URL)return json({error:'Hospital services are awaiting database configuration.'},503);
  try{
   let user=null;

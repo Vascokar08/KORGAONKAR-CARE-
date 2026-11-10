@@ -5,7 +5,8 @@ The Netlify target uses React + Vite, Node serverless functions, and Supabase Po
 1. Create a Supabase **Free** project. Disable automatic table exposure and enable automatic row-level security.
 2. Run `netlify/migrations/001_initial.sql` once using the project's SQL editor. It creates a private `care` schema, foreign keys, unique booking/queue constraints and fictional fixtures. No patient data is migrated from the separate Sites deployment.
 3. Set these Netlify environment variables, never commit their values:
-   - `DATABASE_URL`: Supabase transaction-pooler connection URL with the database password, using TLS (`sslmode=require`). Server function runtime only.
+   - `DATABASE_URL`: Supabase transaction-pooler connection URL, using TLS (`sslmode=require`). The password can be omitted from this URL and supplied separately below.
+   - `PGPASSWORD`: database password, stored as a Netlify secret in the Production context. Never expose it in browser code or commit it. Free Legacy plans limit scope controls; keep untrusted deploy approval enabled.
    - `SUPABASE_URL`: project API URL.
    - `SUPABASE_ANON_KEY`: public publishable/anon API key. This is intentionally sent to the client; never use a service-role key here.
    - `ADMIN_EMAIL`: verified email of the demo administrator.
