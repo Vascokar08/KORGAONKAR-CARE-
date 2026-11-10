@@ -1,7 +1,7 @@
 import React from 'react';
 import {createRoot} from 'react-dom/client';
 import {createClient,type SupabaseClient} from '@supabase/supabase-js';
-import Dashboard from '../../app/dashboard';
+import PortalSelection from '../../app/portal-selection';
 import '../../app/globals.css';
 const root=createRoot(document.getElementById('root')!);
 let auth:SupabaseClient;
@@ -24,8 +24,8 @@ async function boot(){
   // dashboard without a patient sign-in. Keep the old sign-in URL as a safe
   // home-page redirect so old bookmarks do not lead to a dead end.
   if(location.pathname==='/signin-with-chatgpt'){location.replace('/');return}
-  root.render(<><div style={{textAlign:'right',padding:'8px 24px',background:'#edf7f5',fontSize:13}}><span>Public educational demo · fictional data only</span> · <a href="/signout-with-chatgpt">Clear session</a></div><Dashboard/></>);
- }catch(e){root.render(<><p role="status" style={{padding:16}}>{(e as Error).message}</p><Dashboard/></>)}
+  root.render(<><div style={{textAlign:'right',padding:'8px 24px',background:'#edf7f5',fontSize:13}}><span>Public educational demo · fictional data only</span> · <a href="/signout-with-chatgpt">Clear session</a></div><PortalSelection/></>);
+ }catch(e){root.render(<><p role="status" style={{padding:16}}>{(e as Error).message}</p><PortalSelection/></>)}
 }
 void boot();
 
