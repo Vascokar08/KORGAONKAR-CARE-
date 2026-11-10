@@ -1,5 +1,6 @@
 /* Features removed from the patient-facing navigation by request. */
 .quick-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
 .quick-grid .quick-card:nth-child(3){display:none!important}
+.suggestions{display:none!important}
 @media(max-width:760px){.quick-grid{grid-template-columns:1fr!important}}
 
