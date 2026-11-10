@@ -1,113 +1,145 @@
 # Korgaonkar Care AI
 
-For the Netlify + Supabase deployment target, see [NETLIFY.md](NETLIFY.md). This target uses a separate Postgres database and verified-email patient accounts.
+Korgaonkar Care AI is an educational hospital service chatbot built for the Natural Language Processing and Applications Lab. It demonstrates role-aware chatbot navigation, doctor discovery, appointment requests, hospital service guidance, staff operations, reminders, feedback collection, and database-backed workflows using fictional records.
 
-The advanced upgrade is documented in [UPGRADE.md](UPGRADE.md), including completed/pending features, operations APIs, roles, architecture and demo instructions. The earlier HealthSathi implementation notes below describe the preserved foundation; the upgrade status takes precedence.
+This project is a demonstration system. It is not connected to real patient records, hospital acceptance systems, live queues, pharmacy stock, or clinical decision-making.
 
-# HealthSathi Goa — educational hospital service assistant
+## Objectives
 
-A professional educational portal for hospital navigation and simulated appointment booking. It runs on React/Vinext with Cloudflare Workers and D1 (SQLite), without paid AI APIs. The hosted Site remains private to its owner.
+- Provide a simple chatbot entry point for Patient Mode and Staff Mode.
+- Demonstrate NLP-based intent recognition and source-backed hospital information.
+- Help patients find a doctor, choose a department, and request a demo appointment.
+- Demonstrate staff workflows for resources, doctor workspace, appointment decisions, reports, reminders, support, and feedback.
+- Keep appointment and operational changes validated by the server and database.
+- Make the project understandable, testable, and suitable for academic demonstration.
 
-## What is implemented
+## Chatbot modes
 
-| Feature | Behaviour |
-| --- | --- |
-| Doctor search and recommendation | Search by name or speciality; concept aliases such as skin specialist; filter by hospital and OPD weekday. Profiles show illustrative qualifications, languages and experience. |
-| OPD schedules and slots | Server-backed doctor schedules and offered half-hour slots for the next 28 days; holidays and closed slots excluded. |
-| Guided chatbot booking | Speciality → hospital → doctor → date/time → fictional patient name. Supports typed follow-ups and action buttons. |
-| Booking lifecycle | Save a request with ID, view, atomically reschedule, cancel, or delete. Status is always awaiting hospital confirmation or cancelled; never falsely confirmed. |
-| Double-booking prevention | SQLite partial unique index on active `bookings.slot_id`; validation and mutation are one SQL statement. Concurrent requests cannot reserve the same slot. Failed rescheduling retains the original slot. |
-| Reminders | Opt-in appointment reminders plus one-time/daily/weekly user-entered appointment, prescribed-medication, test and follow-up reminders. In-app due notices and calendar alarms; no SMS, email or WhatsApp delivery. No drug or dose recommendation. |
-| Report terminology | Authenticated, consent-gated comparison of fictional numeric values with user-supplied lab ranges; cited test definitions and questions for the clinician. Values are not stored. Not diagnosis, critical-value detection or clinical report interpretation. |
-| Staff handover | Demo Reception/Billing/Nursing inbox, explicit consent for optional reviewed conversation excerpts, administrator replies, and user-controlled deletion. No real hospital staff receive these requests. |
-| Facilities and navigation | Unconnected bed/ICU/MRI/CT/lab/pharmacy status; clearly labelled fictional floor routes, with an admin layout editor. No fabricated live availability or actual GMC floor directions. |
-| Consultation fees | Editable illustrative INR fees; unconfigured fees are shown as unknown. The administrator can populate example fees for seeded demo profiles. No payments. |
-| Hospital locator | Verified GMC location and links to the official Goa directory and map directions. No location collection, live distances or invented clinic addresses. |
-| Service information | Official ORS registration, blood stock lookup, eSanjeevani, government scheme resources; lab and pharmacy guidance without medical recommendations. |
-| Feedback | Signed-in users submit ratings/comments and delete their own feedback. |
-| Administration | Server-side owner allowlist; edit demo doctors, schedules, department display names, individual slot availability and holidays; generate future slots; inspect aggregate analytics. |
-| Accessibility | Native dialog keyboard focus, labelled inputs, screen-reader live chat, large text, high contrast, read aloud, optional voice transcription where browser-supported. |
-| Data preservation | Earlier-version appointment requests are retained and accessible under My appointments → Earlier project requests. |
+The Care Assistant opens with two chatbot options: **Patient** and **Staff**. The Return Home action resets the conversation and returns to this mode-selection screen without a page refresh.
 
-## AI and ML
+### Patient Mode
 
-- Supervised multinomial Naive Bayes: 96 labeled examples, 12 intents, Laplace smoothing and confidence thresholding.
-- TF-IDF cosine retrieval and vocabulary coverage checks; unknown questions ask for clarification.
-- Session-only context for department, hospital, doctor and displayed slots.
-- Concept-expanded retrieval over eight curated official-source summaries, with citation links and verification dates. This is extractive RAG-style grounding, **not an LLM generator or neural embedding model**.
-- Explainable doctor ranking by requested speciality/name, with hospital/day filtering; not clinical recommendations.
-- Experimental English/Hindi/Konkani/Marathi service phrase normalization. Hindi/Konkani/Marathi are **not professionally reviewed**, and responses remain English. This is not a trained multilingual model. Konkani voice input is explicitly unavailable; other voice support depends on the browser.
-- Deterministic emergency phrase routing to official Indian emergency guidance (112), independent of ML confidence. Not clinical triage and not guaranteed to detect every urgent phrase.
-- Cautious service navigation for selected symptom phrases, including frequent headaches to General Medicine, with emergency-language overrides. Not clinical triage or a validated referral model.
-- Opt-in aggregate daily intent counts, measured response-time samples and department inquiry counts. Analytics stores no transcript, user ID or session ID. Admin metrics include request demand, escalation counts and the separate fixed benchmark; usage and clarification rate are not represented as real-world accuracy. Older untimed events are excluded from timing averages. Authentication providers still process normal requests.
+- Find a dermatologist or another department through the chatbot.
+- Open **Doctor & OPD** to search doctors by name, speciality, hospital, and weekday.
+- View illustrative consultation timing, availability, profile information, and fees where configured.
+- Use **Book a Visit** to select a doctor, date, and available time slot.
+- View booking IDs and manage demo appointments, including rescheduling and cancellation.
+- Use care reminders and submit feedback.
+- Reports are intentionally hidden from Patient Mode in this demonstration.
 
-The fixed 24-phrase held-out demonstration set gives 24/24 top-1 matches and 22/24 correct accepted responses. It is small and hand-written, not evidence of real-world or clinical accuracy. Model scores are not calibrated probabilities.
+### Staff Mode
 
-## External systems — not connected
+- Review hospital resources and fictional capacity records.
+- Open the Doctor Workspace to view upcoming demo appointments.
+- Accept or decline appointments awaiting hospital confirmation.
+- Open Reports & Terms, Care Reminders, Staff Support, and Feedback.
+- Use role-controlled staff operations backed by server-side permission checks.
 
-Real hospital acceptance/verification, live queues and waiting times, live blood/pharmacy stock, teleconsultation booking, SMS/email/WhatsApp delivery, real patient records, ABDM and ORS APIs are not connected. Official portal links are provided instead. ORS/eHospital/ABDM integrations require authorised access, implementation and security validation; no fake API integration or clinical confirmation is shown.
+All appointment decisions are clearly labelled as demonstration actions. They do not confirm a real hospital appointment.
 
-GMC is a real institution, but every doctor profile, qualification, OPD schedule and slot in this project is fictional. North Goa Learning Clinic and South Goa Learning Hospital are entirely fictional. Use fictional patient data only.
+## NLP and machine-learning techniques
 
-## Running locally
+- Text normalization and intent routing for common hospital-service questions.
+- A small supervised intent classifier using labelled examples and Naive Bayes-style probability estimates.
+- TF-IDF cosine retrieval over a curated collection of official healthcare information.
+- Concept expansion for phrases such as “skin specialist” and “dermatologist.”
+- Deterministic emergency-language routing that directs users to emergency help instead of diagnosing.
+- Session context for the selected department, hospital, doctor, and displayed slots.
+- Optional browser speech recognition and text-to-speech; availability depends on the browser.
 
-Requires Node 22.13+ and npm. The project was built using Node 22.23.4.
+No generative AI API is required. The model and retrieval outputs are educational, bounded, and not clinical diagnoses.
 
-1. `npm install`
-2. Create an ignored `.dev.vars` containing `ADMIN_EMAIL="seedy@sites.test"` for the starter's local mock identity.
-3. `npm run build`
-4. On a fresh local database, apply each migration once, in order:
-   - `node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js d1 execute DB --local --config dist/server/wrangler.json --persist-to .wrangler/state --file drizzle/0000_quiet_loki.sql`
-   - `node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js d1 execute DB --local --config dist/server/wrangler.json --persist-to .wrangler/state --file drizzle/0001_loud_weapon_omega.sql`
-   - Apply `drizzle/0002_cool_gressill.sql` and then `drizzle/0003_bored_thena.sql` using the same D1 command above and their respective filenames.
-5. `npm run dev`
-6. Visit `/signin-with-chatgpt?return_to=/` on the printed local URL. The starter simulates local sign-in. The configured administrator's first directory load initializes illustrative hospital data; no schema changes occur at request time.
+## Technology stack
 
-The hosted deployment uses a secret `ADMIN_EMAIL` matching the Site owner's authenticated email. No local mock identity is deployed. Signing in does not itself confer admin access. Never put service keys in client code.
+| Layer | Technology | Purpose |
+| --- | --- | --- |
+| Interface | React 19, TypeScript, Vite/Vinext | Responsive chatbot and dashboards |
+| Styling | CSS, Lucide React | Healthcare-themed layout and icons |
+| NLP | TypeScript intent routing, Naive Bayes-style classifier, TF-IDF retrieval | Intent recognition and source-backed responses |
+| Patient workflows | React components and typed API calls | Doctor search, slots, booking, cancellation, rescheduling |
+| Staff workflows | React operations components and server routes | Resources, doctor workspace, appointment decisions, support |
+| Database | Supabase/Postgres for Netlify; Cloudflare D1 for the original local target | Fictional doctors, schedules, bookings, resources, feedback, and audit records |
+| Validation | TypeScript, Vite production build, database integration tests | Regression and deployment checks |
 
-## Validation
+## Appointment workflow
 
-- `node node_modules/typescript/bin/tsc --noEmit`
-- `node scripts/test-ml.mjs`
-- `node scripts/test-hospital.mjs`
-- With the local development server running: `node scripts/test-api.mjs` and `node scripts/test-support.mjs`
+1. The patient selects Patient Mode and chooses Doctor & OPD or Book a Visit.
+2. The chatbot or directory filters doctors and displays available demo schedules.
+3. The patient selects a doctor, date, and offered time slot.
+4. The booking form collects fictional patient details and consent fields.
+5. The server validates the slot and prevents active double bookings.
+6. A booking ID is displayed after the database confirms the request.
+7. The request remains awaiting hospital confirmation until an authorised Staff Workspace user accepts or declines it.
+8. Patients can view, reschedule, or cancel their own demo requests.
 
-The local API test creates and removes QA records. It checks anonymous access rejection, origin enforcement, concurrent slot collision, atomic rescheduling, cancellation, holiday/slot blocking, feedback and input validation. Do not point it at production.
+## Feedback and navigation
 
-## Architecture
+The chatbot provides a Give Feedback action after role selection and after relevant responses. The Feedback page supports educational ratings, comments, complaints, and improvement suggestions. The reusable Home action returns to the Patient/Staff chatbot selection and clears only the current conversation state.
 
-- `app/dashboard.tsx`: portal shell, guided chat, voice/accessibility controls.
-- `app/patient-features.tsx`: doctor search, slot picker, appointment lifecycle and calendar export.
-- `app/admin-panel.tsx`, `app/support-admin.tsx`: restricted demo administration, internal staff replies, sample layouts and analytics.
-- `app/care-tools.tsx`, `app/clinical-support.ts`: report terminology, reminders, handover and facility UI; bounded service navigation and pure numeric comparison.
-- `app/api/support/route.ts`: authenticated report processing, reminders, handovers and layouts.
-- `app/services.tsx`: verified-source library, hospital locator, feedback.
-- `app/ml.ts`: intent training corpus, classifier and evaluation.
-- `app/knowledge.ts`: reviewed-for-source summaries, retrieval and experimental phrase normalization.
-- `app/api/hospital/route.ts`: authenticated APIs and atomic bookings.
-- `db/schema.ts`, `drizzle/`: schema and append-only migrations.
+## Project structure
 
-## Cost
+```text
+app/
+  dashboard.tsx             Main chatbot shell, modes, navigation, and chat actions
+  patient-features.tsx      Doctor directory, booking dialog, and patient bookings
+  operations.tsx            Resources, queue tools, and staff workspace
+  care-tools.tsx            Reports, reminders, staff support, and facility tools
+  services.tsx              Feedback, official information, and hospital locator
+  chat.ts                   Intent response logic and conversation context
+  knowledge.ts              Curated documents and TF-IDF retrieval
+  ml.ts                     Local classifier and evaluation data
+  api/hospital/route.ts     Doctor, slot, booking, feedback, and analytics APIs
+  api/operations/route.ts   Staff resources, queues, roles, and appointment decisions
+db/                         Database schema and migrations
+netlify/runtime/            Netlify API adapter and Supabase/Postgres connection
+scripts/                    Build and integration-test helpers
+public/                     Static assets
+README.md                   This project guide
+```
 
-No paid AI API, messaging provider, payment processor or custom domain is required. Local use is free. Hosting and D1 are provisioned through Sites and subject to account access/quotas; unlimited free hosting is not guaranteed. Cloudflare separately offers Workers and D1 free plans with quotas. A standalone Cloudflare deployment requires replacing Sites-managed authentication and configuring bindings; it is not a one-click independent deployment.
+## Run locally
 
-Official references checked 8 November 2026:
-- https://ors.gov.in/faq.html
-- https://www.mha.gov.in/emergency-response-support-system-erss
-- https://www.goa.gov.in/department/goa-medical-college-and-hospital/
-- https://nhm.goa.gov.in/health-centers-hospitals/
-- https://eraktkosh.mohfw.gov.in/BLDAHIMS/bloodbank/stockAvailability.cnt
-- https://esanjeevani.mohfw.gov.in/
-- https://dhs.goa.gov.in/pages/details/Schemes/deen-dayal-swasthya-seva-yojana
-- https://beneficiary.nha.gov.in/
-- https://developers.cloudflare.com/workers/platform/pricing/
-- https://developers.cloudflare.com/d1/platform/pricing/
+Requirements: Node.js 22.13 or newer and npm.
 
-Additional official clinical-information sources (checked 8 November 2026):
-- https://medlineplus.gov/lab-tests/how-to-understand-your-lab-results/
-- https://medlineplus.gov/lab-tests/complete-blood-count-cbc/
-- https://medlineplus.gov/lab-tests/blood-glucose-test/
-- https://medlineplus.gov/lab-tests/creatinine-test/
-- https://www.nhs.uk/symptoms/headaches/
+```bash
+npm install
+npm run dev
+```
 
-Report values remain only in request/response memory and the current browser state; they are not persisted by this application. This does not replace hospital patient verification or constitute a clinical deployment. Clear values or leave the page to discard the report-helper state.
+For the Netlify bundle:
+
+```bash
+npm run build:netlify
+```
+
+The hosted deployment requires Supabase/Postgres configuration through Netlify environment variables. Never commit database passwords, service keys, or private tokens. Use fictional patient data only.
+
+## Validation commands
+
+```bash
+npx tsc --noEmit
+npm run build:netlify
+node scripts/test-netlify.mjs
+```
+
+The integration test covers schema setup, fixtures, appointment conflicts, ownership, rescheduling failure behavior, analytics, staff restrictions, and transaction rollback.
+
+## Screenshots
+
+Add current screenshots to the report or project presentation using these suggested captions:
+
+- **Figure 1:** Care Assistant chatbot with Patient and Staff options.
+- **Figure 2:** Patient Mode Doctor & OPD directory and Book a Visit flow.
+- **Figure 3:** Staff Workspace with Accept and Decline appointment actions.
+- **Figure 4:** Feedback form and staff support workflow.
+
+## Limitations and future enhancements
+
+The project uses fictional doctors, schedules, patients, and resource values. It does not provide diagnosis, live queue data, medical-record access, live hospital acceptance, pharmacy inventory, SMS, email, WhatsApp, or real insurance processing. Staff permissions are demonstration permissions and require deployment-specific authentication configuration.
+
+Future work could connect an authorised hospital scheduling system, add audited patient authentication, integrate a verified multilingual model, add accessibility-tested voice services, and conduct independent NLP evaluation with a larger reviewed dataset.
+
+## Deployment
+
+The educational deployment is available at [korgaonkar-care-ai.netlify.app](https://korgaonkar-care-ai.netlify.app). The GitHub repository is [Vascokar08/KORGAONKAR-CARE-](https://github.com/Vascokar08/KORGAONKAR-CARE-).
+
